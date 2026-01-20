@@ -1,4 +1,4 @@
-module bljr_go_api
+module github.com/kai-zenn/bljr_go_api
 
 go 1.25.1
 
