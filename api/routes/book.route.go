@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"bljr_go_api/api/controller"
+	"github.com/kai-zenn/bljr_go_api/api/controller"
 	"github.com/gin-gonic/gin"
 )
 
