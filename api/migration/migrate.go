@@ -1,8 +1,8 @@
 package main
 
 import(
-	"bljr_go_api/api/model"
-	"bljr_go_api/api/configs"
+	"github.com/kai-zenn/bljr_go_api/api/model"
+	"github.com/kai-zenn/bljr_go_api/api/configs"
 )
 
 func init(){
