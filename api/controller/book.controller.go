@@ -1,32 +1,40 @@
 package controller
 
 import (
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/kai-zenn/bljr_go_api/api/configs"
 	"github.com/kai-zenn/bljr_go_api/api/model"
-	"fmt"
-	"github.com/gin-gonic/gin"
 )
 
 func CreateBook(c *gin.Context) {
 	// Get data from req body
 	var body struct {
 		Title string
-		Author string
 		Year int
+		UserId uuid.UUID 
 	}
-	c.Bind(&body)
-	// Create a book
 
-	book := model.Book{Title: body.Title, Author: body.Author, Year: body.Year}
-	result := configs.DB.Create(&book)
-
-	if result.Error != nil {
-		c.Status(400)
-		fmt.Println(result.Error)
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
-	// Return it
 
+	book := model.Book{Title: body.Title, UserID: body.UserId, Year: body.Year}
+
+	if err := configs.DB.Create(&book).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// fetch the created book with associated user
+	configs.DB.Preload("User").First(&book, "id = ?", book.ID)
+	
+	// Return it
 	c.JSON(200, gin.H{
 	  "book": book,
 	})
@@ -39,7 +47,7 @@ func GetBook(c *gin.Context) {
 	// get books from database
 	var book []model.Book
 	configs.DB.Find(&book, id)
-
+	
 	// return books
 	c.JSON(200, gin.H{
 		"book": book,
