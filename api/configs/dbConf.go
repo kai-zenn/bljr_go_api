@@ -23,5 +23,5 @@ func InitDB() {
         log.Fatal("Failed to connect to database:", err)
     }
 
-    log.Println("SOK JAGOO LO BRAN WKWKWK")
+    log.Println("Database connection established")
 }
