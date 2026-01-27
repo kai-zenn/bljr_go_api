@@ -1,4 +1,4 @@
-package main
+package migration
 
 import(
 	"github.com/kai-zenn/bljr_go_api/api/model"
@@ -9,8 +9,9 @@ func init(){
 	configs.InitDB()
 }
 
-func main() {
+func Migrate() {
 	configs.DB.AutoMigrate(
+		&model.User{},
 		&model.Book{},
 	)
 }
