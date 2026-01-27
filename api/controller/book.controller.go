@@ -33,7 +33,9 @@ func CreateBook(c *gin.Context) {
 
 	// fetch the created book with associated user
 	configs.DB.Preload("User").First(&book, "id = ?", book.ID)
-	
+	// mapping ke field author dengan username dari user
+	book.Author = book.User.Username
+
 	// Return it
 	c.JSON(200, gin.H{
 	  "book": book,
@@ -46,7 +48,7 @@ func GetBook(c *gin.Context) {
 
 	// get books from database
 	var book []model.Book
-	configs.DB.Find(&book, id)
+	configs.DB.Preload("User").Find(&book, id)
 	
 	// return books
 	c.JSON(200, gin.H{
@@ -56,7 +58,12 @@ func GetBook(c *gin.Context) {
 
 func GetAllBooks(c *gin.Context) {
 	var books []model.Book
-	configs.DB.Find(&books)
+	if err := configs.DB.Preload("User").Find(&books).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	c.JSON(200, gin.H{
 		"books": books,
 	})
@@ -67,21 +74,32 @@ func UpdateBook(c *gin.Context) {
 
 	var body struct {
 		Title string
-		Author string
-		Year int
 	}
-	c.Bind(&body)
+
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(400, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	// Get a single book that we want to update
 	var book model.Book
-	configs.DB.Find(&book, id)
+	if err := configs.DB.First(&book, "id =?", id).Error; err != nil {
+		c.JSON(404, gin.H{
+			"error": "error book not found",
+		})
+		return
+	}
 
 	// update the book fields
 	configs.DB.Model(&book).Updates(model.Book{
 		Title: body.Title,
-		Author: body.Author,
-		Year: body.Year,
 	})
+
+	// preload user data
+	configs.DB.Preload("User").First(&book, "id = ?", book.ID)
+	book.Author = book.User.Username
 
 	// return response
 	c.JSON(200, gin.H{
