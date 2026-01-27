@@ -12,10 +12,10 @@ type Book struct {
 	ID uuid.UUID `json:"id" gorm:"type:uuid;primary_key"` 
 	Title string `json:"title"`
 	Year int `json:"year"`
-	Author string `json:"author"`
-	UserID uuid.UUID `json:"user_id" gorm:"type:uuid;not null"`
-	User User `json:"user" gorm:"foreign_key:UserID;references:ID"`
-	CreatedAt time.Time `json:"created_at`
+	Author string `json:"author" gorm:"-"`
+	UserID uuid.UUID `json:"-" gorm:"type:uuid;not null"`
+	User User `json:"Author" gorm:"foreign_key:UserID;references:ID"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func (b *Book) BeforeCreate(tx *gorm.DB) (err error) {
