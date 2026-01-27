@@ -64,6 +64,12 @@ func GetAllBooks(c *gin.Context) {
 		})
 		return
 	}
+
+	// map author field
+	for i := range books {
+		books[i].Author = books[i].User.Username
+	}
+	
 	c.JSON(200, gin.H{
 		"books": books,
 	})
@@ -102,9 +108,9 @@ func UpdateBook(c *gin.Context) {
 	book.Author = book.User.Username
 
 	// return response
-	c.JSON(200, gin.H{
-		"book": book,
-	})
+	// c.JSON(200, gin.H{
+	// 	"book": book,
+	// })
 }
 
 func DeleteBook(c *gin.Context) {
