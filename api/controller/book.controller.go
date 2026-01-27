@@ -10,9 +10,9 @@ import (
 func CreateBook(c *gin.Context) {
 	// Get data from req body
 	var body struct {
-		Title string
-		Year int
-		UserId uuid.UUID 
+		Title string `json:"title"`
+		Year int `json:"year"`
+		UserId uuid.UUID `json:"user_id"`
 	}
 
 	if err := c.ShouldBindJSON(&body); err != nil {
