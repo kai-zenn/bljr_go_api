@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/kai-zenn/bljr_go_api/api/configs"
@@ -47,9 +49,17 @@ func GetBook(c *gin.Context) {
 	id := c.Param("id")
 
 	// get books from database
-	var book []model.Book
-	configs.DB.Preload("User").Find(&book, id)
+	var book model.Book
+	if err := configs.DB.Preload("User").First(&book, "id = ?", id).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	
+	// map author field
+	book.Author = book.User.Username
+
 	// return books
 	c.JSON(200, gin.H{
 		"book": book,
