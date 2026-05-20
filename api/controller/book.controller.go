@@ -47,8 +47,16 @@ func GetBook(c *gin.Context) {
 	id := c.Param("id")
 
 	// get books from database
-	var book []model.Book
-	configs.DB.Preload("User").Find(&book, id)
+	var book model.Book
+	if err := configs.DB.Preload("User").Find(&book, "id = ?", id).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// map author field
+	book.Author = book.User.Username
 	
 	// return books
 	c.JSON(200, gin.H{
