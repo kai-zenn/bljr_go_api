@@ -19,6 +19,7 @@ func main() {
 
 	routes.BookRoute(r)
 	routes.UserRoute(r)
+	routes.AuthRoutes(r)
 
 	r.Run()
 }
