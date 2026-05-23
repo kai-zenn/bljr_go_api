@@ -1,11 +1,37 @@
 package controller
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"github.com/kai-zenn/bljr_go_api/api/configs"
 	"github.com/kai-zenn/bljr_go_api/api/model"
+	"github.com/kai-zenn/bljr_go_api/api/utils"
 )
+
+func CreateUser(c *gin.Context) {
+  var user model.User
+  if err := c.ShouldBindJSON(&user); err != nil {
+    c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+    return
+  }
+
+  hashedPassword, err := utils.HashPassword(user.Password)
+  if err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to hash password properly"})
+    return
+  }
+
+  user.Password = hashedPassword
+
+  if err := configs.DB.Create(&user).Error; err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+    return
+  }
+
+  c.JSON(http.StatusCreated, gin.H{"message": "User created succesfully"})
+}
 
 func GetUserById(c *gin.Context) {
 	id := c.Param("id")
