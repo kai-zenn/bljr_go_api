@@ -5,13 +5,15 @@ import(
 	"github.com/kai-zenn/bljr_go_api/api/configs"
 )
 
-func init(){
-	configs.InitDB()
-}
-
 func Migrate() {
-	configs.DB.AutoMigrate(
-		&model.User{},
-		&model.Book{},
-	)
+  err := configs.DB.AutoMigrate(
+    		&model.User{},
+    		&model.Book{},
+    		&model.Role{},
+    		&model.Access{},
+   	)
+
+  if err != nil {
+		panic("Gagal melakukan migrasi database: " + err.Error())
+	}
 }

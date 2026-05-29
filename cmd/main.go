@@ -13,6 +13,7 @@ import (
 func Init() {
 	configs.InitDB()
 	migration.Migrate()
+	migration.SeedingDB()
 }
 
 func main() {
