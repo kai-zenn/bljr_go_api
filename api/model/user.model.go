@@ -14,6 +14,7 @@ type User struct {
 	Email string `json:"email" gorm:"unique;not null"` 
 	Password string `json:"-" gorm:"not null"`
 	Books []Book `json:"books" gorm:"foreign_key:UserID"`
+	Roles []Role `json:"role" gorm:"many2many:user_role;foreignKey:ID;joinForeignKey:user_id;refrences:RoleId;joinRefrences:role_id;"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
