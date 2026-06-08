@@ -14,6 +14,7 @@ func Init() {
 	configs.InitDB()
 	migration.Migrate()
 	migration.SeedingDB()
+	migration.SeedUsers()
 }
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
 	routes.BookRoute(r)
 	routes.UserRoute(r)
 	routes.AuthRoutes(r)
+	routes.SetupTestRoutes(r)
 
 	r.GET("/hello", func(c *gin.Context) {
         c.JSON(http.StatusOK, gin.H{
