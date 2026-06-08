@@ -46,7 +46,7 @@ func GetUserById(c *gin.Context) {
 	}
 
 	var user model.User
-	if err := configs.DB.Preload("Books").First(&user, userID).Error; err != nil {
+	if err := configs.DB.Preload("Roles").Preload("Books").First(&user, userID).Error; err != nil {
 		c.JSON(400, gin.H{
 			"error": "user not found",
 		})
@@ -60,7 +60,7 @@ func GetUserById(c *gin.Context) {
 
 func GetUsers(c *gin.Context) {
 	var users []model.User
-	if err := configs.DB.Preload("Books").Find(&users).Error; err != nil {
+	if err := configs.DB.Preload("Roles").Preload("Books").Find(&users).Error; err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
 		})
@@ -104,10 +104,23 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	configs.DB.Model(&user).Updates(model.User{
+	err = configs.DB.Model(&user).Updates(model.User{
 		Username: body.Username,
 		Password: body.Password,
-	})
+	}).Error
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	
+	if err := configs.DB.Preload("Roles").Preload("Books").First(&user, userID).Error; err != nil {
+		c.JSON(500, gin.H{
+			"error": "failed to load user relations after update",
+		})
+		return
+	}
 
 	c.JSON(200, gin.H{
 		"user": user,
