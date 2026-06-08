@@ -10,9 +10,14 @@ import (
 	"github.com/kai-zenn/bljr_go_api/api/utils"
 )
 
+type LoginDTO struct {
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 func LoginUserHandler(c *gin.Context) {
-  var input model.User
-  if err := c.ShouldBindJSON(&input); err != nil{
+  var input LoginDTO 
+  if err := c.ShouldBindJSON(&input); err != nil {
     c.JSON(http.StatusBadRequest, gin.H{
       "error": err.Error(),
     })
@@ -27,10 +32,10 @@ func LoginUserHandler(c *gin.Context) {
     return
   }
 
- 	if !utils.CheckPasswordHash(input.Password, user.Password) {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
-		return
-	}
+  if !utils.CheckPasswordHash(input.Password, user.Password) {
+    c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+    return
+  }
   
   token, err := utils.CreateToken(user.ID)
   if err != nil {
@@ -43,7 +48,6 @@ func LoginUserHandler(c *gin.Context) {
   c.JSON(http.StatusOK, gin.H{
     "token": token,
   })
-  
 }
 
 func RegisterUserHandler(c *gin.Context) {
