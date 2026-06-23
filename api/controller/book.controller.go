@@ -116,9 +116,9 @@ func UpdateBook(c *gin.Context) {
 	book.Author = book.User.Username
 
 	// return response
-	// c.JSON(200, gin.H{
-	// 	"book": book,
-	// })
+	c.JSON(200, gin.H{
+		"book": book,
+	})
 }
 
 func DeleteBook(c *gin.Context) {
