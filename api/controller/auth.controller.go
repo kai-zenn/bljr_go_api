@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	
+
 	"github.com/kai-zenn/bljr_go_api/api/configs"
 	"github.com/kai-zenn/bljr_go_api/api/model"
 	"github.com/kai-zenn/bljr_go_api/api/utils"
@@ -27,16 +27,16 @@ func LoginUserHandler(c *gin.Context) {
   var user model.User
   if err := configs.DB.Where("email = ?", input.Email).First(&user).Error; err != nil {
     c.JSON(http.StatusUnauthorized, gin.H{
-      "error": "Invalid Email or Password",
+      "error": "Invalid Email",
     })
     return
   }
 
   if !utils.CheckPasswordHash(input.Password, user.Password) {
-    c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+    c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid password"})
     return
   }
-  
+
   token, err := utils.CreateToken(user.ID)
   if err != nil {
     c.JSON(http.StatusInternalServerError, gin.H{
@@ -51,31 +51,37 @@ func LoginUserHandler(c *gin.Context) {
 }
 
 func RegisterUserHandler(c *gin.Context) {
-  var user model.User
-  if err := c.ShouldBindJSON(&user); err != nil {
-    c.JSON(http.StatusBadRequest, gin.H{
-      "error": err.Error(),
-    })
-    return
-  }
-  
-  hashedPassword, err := utils.HashPassword(user.Password)
-  if err != nil {
-    c.JSON(http.StatusInternalServerError, gin.H{
-      "error": "Failed to hash Password",
-    })
-    return
-  }
-  user.Password = string(hashedPassword)
+	var input model.User
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-  if err := configs.DB.Create(&user).Error; err != nil {
-    c.JSON(http.StatusInternalServerError, gin.H{
-      "error": "Failed to create user",
-    })
-    return
-  }
+	user := model.User{
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Username:  input.Username,
+		Email:     input.Email,
+	}
 
-  c.JSON(http.StatusCreated, gin.H{
-    "message": "User berhasil terdaftar",
-  })
+	hashedPassword, err := utils.HashPassword(input.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash Password"})
+		return
+	}
+	user.Password = hashedPassword
+
+	var defaultRole model.Role
+	if err := configs.DB.First(&defaultRole, "role_name = ?", "member").Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get default role"})
+		return
+	}
+	user.Roles = []model.Role{defaultRole}
+
+	if err := configs.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "User berhasil terdaftar"})
 }
