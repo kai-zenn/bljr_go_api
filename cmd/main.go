@@ -22,10 +22,10 @@ func main() {
 	Init()
 	r := gin.Default()
 
-	routes.BookRoute(r)
-	routes.UserRoute(r)
+	// routes.BookRoute(r)
+	// routes.UserRoute(r)
 	routes.AuthRoutes(r)
-	routes.SetupTestRoutes(r)
+	routes.RbacRoutes(r)
 
 	r.GET("/hello", func(c *gin.Context) {
         c.JSON(http.StatusOK, gin.H{
