@@ -11,38 +11,49 @@ import (
 
 
 func SeedingDB() {
-	// 1. Cek dulu apakah tabel Accesses masih kosong
+	// Cek apakah tabel Accesses masih kosong
 	var countAccess int64
 	configs.DB.Model(&model.Access{}).Count(&countAccess)
 
-	if countAccess == 0 {
-		createAccess := model.Access{AccessId: 1, AccessName: "create"}
-		readAccess   := model.Access{AccessId: 2, AccessName: "read"}
-		updateAccess := model.Access{AccessId: 3, AccessName: "update"}
-		deleteAccess := model.Access{AccessId: 4, AccessName: "delete"}
+	accesses := []model.Access{
+		{AccessId: 1, AccessName: "users:create"}, // 0
+		{AccessId: 2, AccessName: "users:read"}, // 1
+		{AccessId: 3, AccessName: "users:update"}, // 2
+		{AccessId: 4, AccessName: "users:delete"}, // 3
+		{AccessId: 5, AccessName: "books:write"}, // 4
+		{AccessId: 6, AccessName: "books:read"}, // 5
+		{AccessId: 7, AccessName: "books:update"}, // 6
+		{AccessId: 8, AccessName: "books:delete"}, // 7
+	}
 
-		configs.DB.Create(&[]model.Access{createAccess, readAccess, updateAccess, deleteAccess})
+	for _, acc := range accesses {
+		configs.DB.Save(&acc)
+	}
+	var countRole int64
+	configs.DB.Model(&model.Role{}).Count(&countRole)
 
+	if countRole == 0 {
 		roles := []model.Role{
 			{
 				RoleId:   1,
 				RoleName: "admin",
-				Accesses: []model.Access{createAccess, readAccess, updateAccess, deleteAccess},
+				Accesses: accesses,
 			},
 			{
 				RoleId:   2,
 				RoleName: "member",
-				Accesses: []model.Access{readAccess},
+				Accesses: []model.Access{accesses[1], accesses[3], accesses[5]},
 			},
 			{
 				RoleId:   3,
 				RoleName: "penulis",
-				Accesses: []model.Access{createAccess, readAccess, updateAccess},
+				Accesses: []model.Access{accesses[5], accesses[3], accesses[6], accesses[4], accesses[7]},
 			},
 		}
 
+		// Gunakan Create untuk data baru yang segar
 		if err := configs.DB.Create(&roles).Error; err != nil {
-			log.Println("Gagal seeding Roles & Accesses:", err)
+			log.Println("Gagal seeding Roles & Relasi:", err)
 		} else {
 			log.Println("Seeding Roles, Accesses, dan Role_Access BERHASIL!")
 		}
@@ -71,7 +82,16 @@ func SeedUsers() {
 				Password:  string(hashedPassword),
 				// 🌟 Triknya di sini: Masukkan objek role ke dalam slice Roles
 				// User ini akan otomatis jadi Admin dan Member sekaligus di tabel user_role
-				Roles:     []model.Role{adminRole, memberRole}, 
+				Roles:     []model.Role{adminRole}, 
+			},
+			{
+				ID:        uuid.New(), 
+				FirstName: "Renal",
+				LastName:  "Tupai",
+				Username:  "MasTUpai",
+				Email:     "tupai@example.com",
+				Password:  string(hashedPassword),
+				Roles:     []model.Role{adminRole}, 
 			},
 			{
 				ID:        uuid.New(),
