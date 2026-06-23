@@ -6,7 +6,7 @@ import (
 	"github.com/kai-zenn/bljr_go_api/api/middlewares"
 )
 
-func SetupTestRoutes(r *gin.Engine) {
+func RbacRoutes(r *gin.Engine) {
   // ini kode dari tutor jir
   // Public routes (accessible by anyone)
    // r.POST("/login", controller.LoginUserHandler)
@@ -16,8 +16,16 @@ func SetupTestRoutes(r *gin.Engine) {
    authGroup := r.Group("/rbac")
    authGroup.Use(middlewares.AuthMiddleware())
 
-   // Role-based access control for specific routes
-   authGroup.GET("/users", middlewares.RBACMiddleware("read"), controller.GetUsers)
-   authGroup.GET("/users/:id", middlewares.RBACMiddleware("read"), controller.GetUserById)
-   authGroup.PUT("/users/:id", middlewares.RBACMiddleware("update"), controller.UpdateUser)
+   // Role-based access control for routes User Routes (only admin can do CRUD Operations on user)
+   authGroup.GET("/users", middlewares.RBACMiddleware("users:read"), controller.GetUsers)
+   authGroup.GET("/users/:id", middlewares.RBACMiddleware("users:read"), controller.GetUserById)
+   authGroup.PATCH("/users/:id/change-role", middlewares.RBACMiddleware("users:update"), controller.UpdateUser)
+   // authGroup.DELETE("/users/:id", middlewares.RBACMiddleware("users:delete"), controller.DeleteUser)
+   
+   // Role-based access control for Books Routes
+   authGroup.GET("/books", middlewares.RBACMiddleware("books:read"), controller.GetAllBooks)
+   authGroup.GET("/books/:id", middlewares.RBACMiddleware("books:read"), controller.GetBook)
+   authGroup.POST("/books", middlewares.RBACMiddleware("books:write"), controller.CreateBook) // only Writer can create books
+   authGroup.PATCH("/books/:id", middlewares.RBACMiddleware("books:write"), controller.UpdateBook)
+   authGroup.DELETE("/books/:id", middlewares.RBACMiddleware("books:write"), controller.DeleteBook)
 }
