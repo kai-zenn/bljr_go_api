@@ -15,6 +15,14 @@ type LoginDTO struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type RegisterDTO struct {
+	FirstName string `json:"first_name" binding:"required"`
+	LastName  string `json:"last_name" binding:"required"`
+	Username  string `json:"username" binding:"required"`
+	Email     string `json:"email" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+}
+
 func LoginUserHandler(c *gin.Context) {
   var input LoginDTO 
   if err := c.ShouldBindJSON(&input); err != nil {
@@ -51,9 +59,21 @@ func LoginUserHandler(c *gin.Context) {
 }
 
 func RegisterUserHandler(c *gin.Context) {
-	var input model.User
+	var input RegisterDTO
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	hashedPassword, err := utils.HashPassword(input.Password)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash Password"})
+		return
+	}
+	
+	var defaultRole model.Role
+	if err := configs.DB.First(&defaultRole, "role_name = ?", "member").Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get default role"})
 		return
 	}
 
@@ -62,21 +82,9 @@ func RegisterUserHandler(c *gin.Context) {
 		LastName:  input.LastName,
 		Username:  input.Username,
 		Email:     input.Email,
+		Password: hashedPassword,
+		Roles:    []model.Role{defaultRole},
 	}
-
-	hashedPassword, err := utils.HashPassword(input.Password)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash Password"})
-		return
-	}
-	user.Password = hashedPassword
-
-	var defaultRole model.Role
-	if err := configs.DB.First(&defaultRole, "role_name = ?", "member").Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get default role"})
-		return
-	}
-	user.Roles = []model.Role{defaultRole}
 
 	if err := configs.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})

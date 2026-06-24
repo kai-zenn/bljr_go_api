@@ -12,9 +12,9 @@ type User struct {
 	LastName string `json:"last_name" gorm:"not null"`
 	Username string `json:"username" gorm:"unique;not null"`
 	Email string `json:"email" gorm:"unique;not null"` 
-	Password string `json:"password" gorm:"not null"`
+	Password string `json:"-" gorm:"not null"`
 	Books []Book `json:"books" gorm:"foreign_key:UserID;constraint:OnDelete:CASCADE;"`
-	Roles []Role `json:"role" gorm:"many2many:user_role;foreignKey:ID;joinForeignKey:user_id;references:RoleID;joinReferences:role_id;"`
+	Roles []Role `json:"-" gorm:"many2many:user_role;foreignKey:ID;joinForeignKey:user_id;references:RoleID;joinReferences:role_id;"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
